@@ -1,0 +1,6 @@
+{
+  "stubPath": "typings",
+  "extraPaths": ["compiler_generated"],
+  "typeCheckingMode": "basic",
+  "exclude": ["compiler_generated/*_pb2.py"]
+}

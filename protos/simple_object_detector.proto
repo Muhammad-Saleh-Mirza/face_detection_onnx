@@ -1,0 +1,120 @@
+syntax = "proto3";
+
+package simple_object_detector;
+
+import "google/protobuf/empty.proto";
+
+// =====================================================
+// OBJECT DETECTION SERVICE
+// =====================================================
+service ObjectDetection {
+
+  // Single-frame inference
+  rpc Forward (DetectionRequest) returns (DetectionResponse);
+
+  // Health check endpoint
+  rpc HealthCheck (google.protobuf.Empty) returns (HealthCheckResponse);
+
+  // Get model class names (id -> name mapping)
+  rpc GetNames (google.protobuf.Empty) returns (NamesResponse);
+}
+
+// =====================================================
+// DETECTION REQUEST
+// =====================================================
+message DetectionRequest {
+
+  // Encoded image bytes (jpg/png)
+  bytes frame = 1;
+
+  // Original frame shape
+  int32 height = 2;
+  int32 width = 3;
+  int32 channels = 4;
+
+  // Metadata
+  string frame_id = 5;
+  int64 timestamp = 6;
+  string camera_id = 7;
+
+  // Previous pipeline/stage detections
+  repeated PreviousDetection prev_results = 8;
+}
+
+// =====================================================
+// PREVIOUS DETECTIONS
+// =====================================================
+message PreviousDetection {
+
+  // Bounding box
+  repeated int32 bbox = 1; // [x1, y1, x2, y2]
+
+  // Detection confidence
+  float confidence = 2;
+
+  // Class info
+  string class_name = 3;
+  int32 class_id = 4;
+
+  // Model info
+  string model_id = 5;
+
+  // Optional tracking GUID
+  string guid = 6;
+
+  // Additional metadata
+  map<string, string> attributes = 7;
+}
+
+// =====================================================
+// DETECTION RESPONSE
+// =====================================================
+message DetectionResponse {
+  repeated DetectionObject objects = 1;
+  string message = 2;
+  int64 inference_time_ms = 3;
+  string model_version = 4;
+  string frame_id = 5;
+}
+
+// =====================================================
+// DETECTED OBJECT
+// =====================================================
+message DetectionObject {
+
+  // Bounding box
+  float x1 = 1;
+  float y1 = 2;
+  float x2 = 3;
+  float y2 = 4;
+
+  // Classification
+  string class_name = 5;
+  float confidence = 6;
+
+  // Optional tracking id
+  int32 track_id = 7;
+
+  // Extra metadata
+  map<string, string> attributes = 8;
+}
+
+// =====================================================
+// HEALTH CHECK RESPONSE
+// =====================================================
+message HealthCheckResponse {
+  string status = 1;
+  string service = 2;
+  int64 timestamp = 3;
+  bool model_loaded = 4;
+  string version = 5;
+}
+
+// =====================================================
+// MODEL NAMES RESPONSE
+// =====================================================
+message NamesResponse {
+
+  // class_id -> class_name
+  map<int32, string> names = 1;
+}

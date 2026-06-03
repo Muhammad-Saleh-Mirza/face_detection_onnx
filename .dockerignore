@@ -1,0 +1,94 @@
+# VCS / editor metadata
+.git
+.gitignore
+.idea/
+.vscode/
+.DS_Store
+
+# Python / virtualenv / caches
+__pycache__/
+*.py[cod]
+*.so
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.cache/
+.*_cache/
+.ipynb_checkpoints/
+venv/
+.venv/
+.venv2/
+**/venv/
+**/.venv/
+
+# Local env and secrets
+.env
+.env.*
+*.env
+
+# Databases / local state
+*.db
+*.sqlite
+*.sqlite3
+*shared_db
+logs_collector_local_shared_db
+commands/image_embedding_local_shared_db
+
+# Archives / packaged artifacts
+*.zip
+*.tar
+*.tar.gz
+*.tgz
+*.rar
+*.7z
+
+# Model weights and inference engines
+*inferenced_weights*
+inferenced_weights/
+poc/
+hf_flows/
+commands/
+*.zip
+*.pt
+*.pth
+*.ckpt
+*.safetensors
+*.onnx
+*.engine
+*.trt
+*.plan
+*.jpeg
+*.jpeg
+# Media and large data artifacts
+*.mp4
+*.avi
+*.mov
+*.mkv
+*.webm
+*.gif
+*.png
+*.jpg
+*.jpeg
+*.bmp
+*.tiff
+*.webp
+
+# ML experiment outputs / datasets
+**/datasets/
+**/dataset/
+**/data/
+**/images/
+**/videos/
+**/runs/
+**/results/
+**/artifacts/
+**/checkpoints/
+**/mlruns/
+**/wandb/
+
+# Misc local trash
+garbage
+*garbage
+/home/noman-ali/projects/versye-template/ais-handler-template/shared
+compiler_generated
+

@@ -1,0 +1,69 @@
+#RULE: can be change according to use cases
+services:
+
+  face-embedding:
+    image: harbor.qbscocloud.net:30003/verseye-project/face-embeddings-ii:latest
+    container_name: face-embedding
+    runtime: nvidia
+    ports:
+      - "50051:50051"
+    environment:
+      - PYTHONUNBUFFERED=1
+      - GRPC_PORT=50051
+      - MODELS_DIR=/app/models
+      - GRPC_USERNAME=verseye
+      - GRPC_PASSWORD=verseye1@3
+    volumes:
+      - ./models:/app/models
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c",
+             "import grpc; ch=grpc.insecure_channel('localhost:50051'); grpc.channel_ready_future(ch).result(timeout=5)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 300s
+
+  face-detection:
+    image: harbor.qbscocloud.net:30003/verseye-project/face-detection-insightface-ii:latest
+    container_name: face-detection
+    runtime: nvidia
+    ports:
+      - "50053:50053"
+    environment:
+      - PYTHONUNBUFFERED=1
+      - SERVICE_TYPE=face_detection
+      - GRPC_PORT=50053
+      - MODELS_DIR=/app/models
+      - EMBEDDING_SERVICE_ADDR=face-embedding:50051
+      - EMBEDDING_USERNAME=verseye
+      - EMBEDDING_PASSWORD=verseye1@3
+      - GRPC_USERNAME=verseye
+      - GRPC_PASSWORD=verseye1@3
+    volumes:
+      - ./models:/app/models
+    depends_on:
+      face-embedding:
+        condition: service_healthy
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c",
+             "import grpc; ch=grpc.insecure_channel('localhost:50053'); grpc.channel_ready_future(ch).result(timeout=5)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 300s
