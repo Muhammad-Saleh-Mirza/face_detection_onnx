@@ -13,11 +13,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN python -m venv /venv
 ENV PATH="/venv/bin:$PATH"
 
-# PyTorch cu121 — wheels bundle cuDNN, no CUDA base image needed
-RUN pip install --no-cache-dir \
-    torch torchvision \
-    --index-url https://download.pytorch.org/whl/cu121
+# onnxruntime-gpu — cached in its own layer, only re-runs if this line changes
+# --only-binary :all: ensures pip uses a pre-built wheel and never compiles from source
+RUN pip install --no-cache-dir --only-binary :all: onnxruntime-gpu==1.19.2
 
+# Remaining deps — fast to install, cache invalidates when requirements.base.txt changes
 COPY requirements.base.txt ./
 RUN pip install --no-cache-dir -r requirements.base.txt
 

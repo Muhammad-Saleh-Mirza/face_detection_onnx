@@ -1,4 +1,5 @@
 import logging
+import urllib.error
 import urllib.request
 import zipfile
 from pathlib import Path
@@ -74,7 +75,16 @@ def download_and_extract_models(dest_dir: str = "models") -> None:
             log.info("[%s] %d%%  %.1f / %.1f MB", bar, pct, done_mb, tot_mb)
 
     log.info("Downloading model weights from %s → %s", MODELS_URL, zip_target)
-    urllib.request.urlretrieve(MODELS_URL, str(zip_target), reporthook=_progress)
+    try:
+        urllib.request.urlretrieve(MODELS_URL, str(zip_target), reporthook=_progress)
+    except urllib.error.HTTPError as e:
+        if e.code == 403:
+            raise RuntimeError(
+                f"S3 download failed (403 Forbidden). The bucket may be private.\n"
+                f"Fix: manually copy the buffalo_l folder to {dest_path / 'buffalo_l'} "
+                f"or update MODELS_URL in services/model_loader.py."
+            ) from e
+        raise
     log.info("Download complete. Extracting...")
 
     _extract_strip_toplevel(zip_target, dest_path)

@@ -5,4 +5,4 @@ opencv-python
 numpy
 requests
 python-dotenv
-onnxruntime-gpu>=1.17.0
+

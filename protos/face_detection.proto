@@ -58,7 +58,8 @@ message PreviousDetection {
   // Model info
   string model_id = 5;
 
-  // Optional tracking GUID
+  // Tracking ID from upstream person tracker (SORT / ByteTrack / DeepSORT)
+  int64 track_id = 6;
 
   // Additional metadata
   map<string, string> attributes = 7;
