@@ -93,12 +93,16 @@ def download_and_extract_models(dest_dir: str = "models") -> None:
     log.info("Model weights ready at %s", dest_path)
 
 
-def ensure_models(dest_dir: str = "models") -> str:
+def ensure_models(dest_dir: str = "models") -> tuple[str, str]:
+    """
+    Ensures both ONNX models are present.
+    Returns (det_model_path, rec_model_path).
+    """
     dest_path = Path(dest_dir).resolve()
-    target_onnx = dest_path / "buffalo_l" / "det_10g.onnx"
+    det_onnx = dest_path / "buffalo_l" / "det_10g.onnx"
+    rec_onnx = dest_path / "buffalo_l" / "w600k_r50.onnx"
 
-    if not target_onnx.exists():
-        # Guard against a stale duplicate folder left by a previous bad extraction
+    if not det_onnx.exists() or not rec_onnx.exists():
         duplicate = dest_path / dest_path.name / "buffalo_l"
         if duplicate.exists():
             log.warning(
@@ -107,9 +111,14 @@ def ensure_models(dest_dir: str = "models") -> str:
                 duplicate.parent, dest_path,
             )
 
-        log.warning("det_10g.onnx not found at %s — downloading...", target_onnx)
+        missing = []
+        if not det_onnx.exists():
+            missing.append("det_10g.onnx")
+        if not rec_onnx.exists():
+            missing.append("w600k_r50.onnx")
+        log.warning("Missing models %s — downloading...", missing)
         download_and_extract_models(str(dest_path))
     else:
-        log.info("det_10g.onnx found at %s", target_onnx)
+        log.info("Models ready: %s, %s", det_onnx, rec_onnx)
 
-    return str(target_onnx)
+    return str(det_onnx), str(rec_onnx)

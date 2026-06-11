@@ -46,11 +46,8 @@ ENV PATH="/venv/bin:$PATH"
 
 # Runtime defaults — every value is overridable via docker-compose environment or -e flags
 ENV SERVICE_TYPE=face_detection \
-    GRPC_PORT=50053 \
+    GRPC_PORT=50051 \
     MODELS_DIR=/app/models \
-    EMBEDDING_SERVICE_ADDR=face-embedding:50051 \
-    EMBEDDING_USERNAME=verseye \
-    EMBEDDING_PASSWORD=verseye1@3 \
     GRPC_USERNAME=verseye \
     GRPC_PASSWORD=verseye1@3
 
@@ -62,5 +59,5 @@ COPY services/ ./services/
 # Generated stubs from deps stage
 COPY --from=deps /build/compiler_generated ./compiler_generated/
 
-EXPOSE 50053
+EXPOSE 50051
 CMD ["python", "host.py"]

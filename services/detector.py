@@ -235,3 +235,33 @@ class SCRFDDetector:
         M = umeyama(landmarks, _ARCFACE_DST)
         warped = cv2.warpAffine(img, M, (image_size, image_size), borderValue=0.0)
         return warped
+
+
+class ArcFaceEmbedder:
+    def __init__(self, model_path: str) -> None:
+        providers = ort.get_available_providers()
+        selected: list[str] = []
+        if "CUDAExecutionProvider" in providers:
+            selected.append("CUDAExecutionProvider")
+        selected.append("CPUExecutionProvider")
+
+        log.info("Initializing ONNX Runtime session for ArcFace with providers: %s", selected)
+        self.session = ort.InferenceSession(model_path, providers=selected)
+        self.input_name = self.session.get_inputs()[0].name
+
+    def get_embedding(self, aligned_face: np.ndarray) -> list[float]:
+        """
+        aligned_face: (112, 112, 3) BGR uint8 image (output of SCRFDDetector.align_face)
+        Returns: 512-dim L2-normalized embedding as a float list.
+        """
+        img = cv2.cvtColor(aligned_face, cv2.COLOR_BGR2RGB).astype(np.float32)
+        img = (img - 127.5) / 127.5          # normalize to [-1, 1]
+        img = img.transpose(2, 0, 1)[np.newaxis, ...]  # HWC -> NCHW (1, 3, 112, 112)
+
+        outputs = self.session.run(None, {self.input_name: img})
+        embedding = outputs[0].flatten().astype(np.float32)
+
+        norm = np.linalg.norm(embedding)
+        if norm > 0:
+            embedding = embedding / norm
+        return embedding.tolist()

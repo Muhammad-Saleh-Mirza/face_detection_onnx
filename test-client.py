@@ -20,7 +20,7 @@ import compiler_generated.face_detection_pb2_grpc as face_detection_pb2_grpc
 # CONFIG
 # =====================================================
 
-GRPC_HOST = "localhost:50053"
+GRPC_HOST = "localhost:50051"
 
 USERNAME = "verseye"
 PASSWORD = "verseye1@3"
