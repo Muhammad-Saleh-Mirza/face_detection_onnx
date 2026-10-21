@@ -29,15 +29,15 @@ class FaceDetectionServicerImpl(FaceDetectionServicer):
 
     def Forward(self, request, context):
         start = time.time()
-
         np_arr = np.frombuffer(request.frame, np.uint8)
         image = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
 
         if image is None:
-            log.error("Failed to decode image from request.frame")
+            log.error("[Forward] Failed to decode image from request.frame")
             return DetectionResponse(message="invalid image")
 
         bboxes, kpss = self.detector.detect(image)
+        log.info("[Forward] Detection complete — faces_found=%d", bboxes.shape[0])
 
         detections = []
         for i in range(bboxes.shape[0]):
@@ -46,6 +46,13 @@ class FaceDetectionServicerImpl(FaceDetectionServicer):
 
             aligned_face = self.detector.align_face(image, kps)
             embedding = self.embedder.get_embedding(aligned_face)
+
+            log.info(
+                "[Forward] Face #%d — bbox=(%.1f,%.1f,%.1f,%.1f) conf=%.4f embedding_dim=%d norm=%.6f",
+                i + 1, x1, y1, x2, y2, score,
+                len(embedding),
+                float(np.linalg.norm(embedding)) if embedding else 0.0,
+            )
 
             pb_landmarks = [Landmark(x=float(kp[0]), y=float(kp[1])) for kp in kps]
 
@@ -65,6 +72,7 @@ class FaceDetectionServicerImpl(FaceDetectionServicer):
             )
 
         inference_time = int((time.time() - start) * 1000)
+        log.info("[Forward] Response sent — faces=%d inference_time_ms=%d", len(detections), inference_time)
 
         return DetectionResponse(
             objects=detections,

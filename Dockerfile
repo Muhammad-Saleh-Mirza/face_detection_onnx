@@ -1,16 +1,17 @@
 # ─────────────────────────────────────────────
 # Stage 1: deps — build venv + compile protos
 # ─────────────────────────────────────────────
-FROM python:3.12 AS deps
+FROM nvidia/cuda:12.6.3-cudnn-runtime-ubuntu24.04 AS deps
 
-ENV PYTHONUNBUFFERED=1
+ENV PYTHONUNBUFFERED=1 DEBIAN_FRONTEND=noninteractive
 WORKDIR /build
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
+    python3.12 python3.12-venv \
     libgl1 libglib2.0-0 \
   && rm -rf /var/lib/apt/lists/*
 
-RUN python -m venv /venv
+RUN python3.12 -m venv /venv
 ENV PATH="/venv/bin:$PATH"
 
 # onnxruntime-gpu — cached in its own layer, only re-runs if this line changes
@@ -30,14 +31,16 @@ RUN mkdir -p compiler_generated \
  && PYTHON=/venv/bin/python ./run-grpc-compiler.sh
 
 # ─────────────────────────────────────────────
-# Stage 2: runtime — slim image
+# Stage 2: runtime — CUDA/cuDNN base for GPU inference
 # ─────────────────────────────────────────────
-FROM python:3.12-slim AS runtime
+FROM nvidia/cuda:12.6.3-cudnn-runtime-ubuntu24.04 AS runtime
 
-ENV PYTHONUNBUFFERED=1
+ENV PYTHONUNBUFFERED=1 DEBIAN_FRONTEND=noninteractive
 WORKDIR /app
 
+# python3.12 only — CUDA/cuDNN runtime libs already come from the base image.
 RUN apt-get update && apt-get install -y --no-install-recommends \
+    python3.12 \
     libgl1 libglib2.0-0 \
   && rm -rf /var/lib/apt/lists/*
 
